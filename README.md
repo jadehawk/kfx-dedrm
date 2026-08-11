@@ -9,6 +9,16 @@ The project keeps a single visible `DeDRM KFX` Scriptlet in the Kindle Library w
 - Scan documents folder
 - Scan documents folder with truncated names
 
+## Screenshots
+
+### Kindle Library
+
+![KFX DeDRM Scriptlet in the Kindle Library](assets/Library-View.png)
+
+### KFX DeDRM menu
+
+![KFX DeDRM interactive kterm menu](assets/Menu-View.png)
+
 ## Repository layout
 
 ```text
