@@ -1,0 +1,20 @@
+# Generated releases
+Builds/
+
+# ThinkForge / local tooling
+.codegraph/
+.ai-bridge/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.orig
