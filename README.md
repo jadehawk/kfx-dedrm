@@ -19,6 +19,10 @@ The project keeps a single visible `DeDRM KFX` Scriptlet in the Kindle Library w
 
 ![KFX DeDRM interactive kterm menu](assets/Menu-View.png)
 
+### DeDRM results
+
+![KFX DeDRM results in kterm](assets/DeDRM-Results.png)
+
 ## Repository layout
 
 ```text
