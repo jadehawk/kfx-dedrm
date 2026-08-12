@@ -4,6 +4,7 @@ Builds/
 # ThinkForge / local tooling
 .codegraph/
 .ai-bridge/
+AGENTS.md
 
 # OS/editor noise
 .DS_Store

@@ -1,0 +1,39 @@
+{
+  "items": [
+    {
+      "name": "KFX DeDRM Scriptlet",
+      "priority": -1,
+      "items": [
+        {
+          "name": "DeDRM all KFX",
+          "priority": 1,
+          "action": "bin/run_cmd.sh"
+        },
+        {
+          "name": "Create keyfile for KFX",
+          "priority": 2,
+          "action": "bin/run_cmd.sh",
+          "params": "keyfile"
+        },
+        {
+          "name": "Books",
+          "priority": 6,
+          "items": [
+            {
+              "name": "Scan documents folder",
+              "action": "bin/run_cmd.sh",
+              "params": "scan",
+              "priority": 1
+            },
+            {
+              "name": "Scan documents folder (truncate names)",
+              "action": "bin/run_cmd.sh",
+              "params": "scantruncate",
+              "priority": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

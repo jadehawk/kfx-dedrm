@@ -6,6 +6,8 @@ This repository and its release archives contain components that are not covered
 
 The `kfxdedrm*` executables under `src/kfxdedrm-scriptlet/bin/` originate from Satsuoni's KFX DeDRM implementation. They are redistributed in this project with permission from Satsuoni and retain their original authorship. The repository-level GNU General Public License v3.0 does not relicense these binaries.
 
+The Kindle-device source supplied with Satsuoni's v10.0.28 package is preserved under `third_party/satsuoni/kindle_device/` and is also included under `source/` in release archives. This project changes only the two generated-menu path references in `kindledecryptordevice.cpp`, redirecting them from the original KUAL extension path to `/mnt/us/extensions/kfxdedrm-scriptlet/menu.json`. The currently distributed executables remain Satsuoni's unchanged v10.0.28 binaries.
+
 ## kterm 2.6
 
 kterm is Copyright its upstream authors and contributors and is licensed under GNU GPL version 3 or, at your option, any later version.

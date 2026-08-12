@@ -63,6 +63,8 @@ mkdir "%STAGE_DIR%\licenses\kterm-2.6" >nul 2>&1
 copy /Y "%KTERM_LICENSE%" "%STAGE_DIR%\licenses\kterm-2.6\COPYING" >nul
 mkdir "%STAGE_DIR%\source\kterm-2.6" >nul 2>&1
 copy /Y "%KTERM_SOURCE%" "%STAGE_DIR%\source\kterm-2.6\kterm-v2.6-source.zip" >nul
+mkdir "%STAGE_DIR%\source\satsuoni-kfx-dedrm-10.0.28-scriptlet\kindle_device" >nul 2>&1
+xcopy "%CD%\third_party\satsuoni\kindle_device\*" "%STAGE_DIR%\source\satsuoni-kfx-dedrm-10.0.28-scriptlet\kindle_device\" /E /I /Q /Y >nul
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command ^
   "$ErrorActionPreference='Stop'; Compress-Archive -Path (Join-Path '%STAGE_DIR%' '*') -DestinationPath '%OUTPUT%' -CompressionLevel Optimal"
