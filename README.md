@@ -5,17 +5,17 @@ KUAL-free Kindle Scriptlet wrapper for Satsuoni's KFX DeDRM utility.
 Project repository: https://github.com/jadehawk/kfx-dedrm
 
 > [!WARNING]
-> ## v0.2.2 PRE-RELEASE — CURRENT LIMITATION
+> ## v0.2.2 PRE-RELEASE — CURRENT STATUS
 >
-> The Scriptlet is currently functional, but **v0.2.2 should be considered a pre-release and is not yet production-ready for every Kindle library layout**.
+> The Scriptlet is functional and the new Satsuoni executables now support a runtime **scan-directory argument**. The scan folder selected in Settings is passed directly to the native scanner.
 >
-> **What currently works:** launching the Scriptlet through SH_Integration/kterm, DeDRM All, keyfile creation, scanning and selecting individual books, UTF-8/CJK title display and safe truncation, kterm auto-detection, and the new Settings UI. The Scriptlet now installs under `/mnt/us/extensions/kfxdedrm-scriptlet/` and can migrate settings from the previous `/mnt/us/kfxdedrm-scriptlet/` layout.
+> **Scan folders are recursive.** If you select `/mnt/us/documents/Downloads`, the scanner also searches folders below it such as `/mnt/us/documents/Downloads/Items01`, `/Items02`, and book-specific subfolders. Selecting a narrower path such as `/mnt/us/documents/Downloads/Items01` limits the scan to that folder and its descendants. If no scan-directory argument is supplied, the executable keeps the original KUAL-compatible default of `/mnt/us/documents`.
 >
-> **Current limitation:** the bundled Satsuoni executables still use their built-in scan location (`/mnt/us/documents`) and generated KUAL menu path (`/mnt/us/extensions/kfxdedrm/menu.json`). The Settings page can save alternate/custom scan folders, but the current executables cannot yet receive that selected scan folder at runtime. Therefore, **changing the scan folder in Settings does not currently change where the native executable scans**.
+> **What currently works:** launching through SH_Integration/kterm, DeDRM All, keyfile creation, configurable recursive scan roots, scanning and selecting individual books, UTF-8/CJK title display and safe truncation, kterm auto-detection, and the Settings UI. The Scriptlet installs under `/mnt/us/extensions/kfxdedrm-scriptlet/` and can migrate settings from the previous `/mnt/us/kfxdedrm-scriptlet/` layout.
 >
-> **What we are waiting on:** runtime arguments in the Kindle executables for (1) the scan directory and (2) the generated `menu.json` output path, while retaining the existing paths as defaults for KUAL backward compatibility. Once available, the same executables can support both KUAL and this Scriptlet, and the Settings scan-folder selection can be passed directly to the scanner.
+> **Remaining limitation:** the executables still generate scan-menu output at the original KUAL path `/mnt/us/extensions/kfxdedrm/menu.json`. The Scriptlet currently handles this with a guarded compatibility bridge that captures the generated menu for the Scriptlet and restores any existing KUAL menu afterward.
 >
-> If your books are discoverable by the executable's existing `/mnt/us/documents` scan behavior, the current Scriptlet functionality can be tested and used. Users whose firmware/library layout requires a different scan root, such as `/mnt/us/documents/Downloads/Items01`, should treat v0.2.2 as **pre-release/testing only** until runtime scan-path support is available.
+> **What we are still waiting on:** an optional runtime `menu.json` output-path argument, while retaining `/mnt/us/extensions/kfxdedrm/menu.json` as the default for KUAL backward compatibility. Once that is available, the compatibility bridge can be removed and the same executables can write directly to either KUAL or `/mnt/us/extensions/kfxdedrm-scriptlet/menu.json`.
 
 The project keeps a single visible `KFX DeDRM` Scriptlet in the Kindle Library while preserving the four actions from the original KUAL menu:
 

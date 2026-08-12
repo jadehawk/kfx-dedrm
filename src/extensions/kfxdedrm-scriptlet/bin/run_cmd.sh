@@ -151,7 +151,7 @@ run_scan() {
 
 case "$1" in
     scan|scantruncate)
-        run_scan "$1"
+        run_scan "$1" "$2"
         exit $?
         ;;
 esac
