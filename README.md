@@ -2,6 +2,8 @@
 
 KUAL-free Kindle Scriptlet wrapper for Satsuoni's KFX DeDRM utility.
 
+Project repository: https://github.com/jadehawk/kfx-dedrm
+
 The project keeps a single visible `KFX DeDRM` Scriptlet in the Kindle Library while preserving the four actions from the original KUAL menu:
 
 - DeDRM all KFX

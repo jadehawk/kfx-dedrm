@@ -344,6 +344,28 @@ scan_books() {
     show_books_menu "$scan_mode"
 }
 
+credits_menu() {
+    while :; do
+        clear_screen
+        printf '%s\n' '============================================'
+        printf '%s\n' '                 Credits'
+        printf '%s\n' '============================================'
+        printf '\nKFX DeDRM Scriptlet\n'
+        printf '%s\n' 'Jadehawk'
+        printf '%s\n' 'https://github.com/jadehawk/kfx-dedrm'
+        printf '\nDeDRM Tools\n'
+        printf '%s\n' 'Satsuoni'
+        printf '%s\n' 'https://github.com/Satsuoni/DeDRM_tools'
+        printf '\n%s\n' 'B. Back'
+        printf '\nSelect an option: '
+        IFS= read choice
+        case "$choice" in
+            b|B) return ;;
+            *) ;;
+        esac
+    done
+}
+
 if [ "$FIRST_RUN" -eq 1 ]; then
     settings_menu
 fi
@@ -361,6 +383,7 @@ while :; do
     printf '%s\n' '3. Scan configured folder'
     printf '%s\n' '4. Scan configured folder + truncate names'
     printf '%s\n' '5. Settings'
+    printf '%s\n' '6. Credits'
     printf '%s\n' 'Q. Exit'
     printf '\nScan folder: %s\n' "$SCAN_PATH"
     printf '\nSelect an option: '
@@ -380,6 +403,7 @@ while :; do
         3) scan_books scan ;;
         4) scan_books scantruncate ;;
         5) settings_menu ;;
+        6) credits_menu ;;
         q|Q) exit 0 ;;
         *) ;;
     esac
