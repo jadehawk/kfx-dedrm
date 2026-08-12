@@ -4,6 +4,19 @@ KUAL-free Kindle Scriptlet wrapper for Satsuoni's KFX DeDRM utility.
 
 Project repository: https://github.com/jadehawk/kfx-dedrm
 
+> [!WARNING]
+> ## v0.2.2 PRE-RELEASE — CURRENT LIMITATION
+>
+> The Scriptlet is currently functional, but **v0.2.2 should be considered a pre-release and is not yet production-ready for every Kindle library layout**.
+>
+> **What currently works:** launching the Scriptlet through SH_Integration/kterm, DeDRM All, keyfile creation, scanning and selecting individual books, UTF-8/CJK title display and safe truncation, kterm auto-detection, and the new Settings UI. The Scriptlet now installs under `/mnt/us/extensions/kfxdedrm-scriptlet/` and can migrate settings from the previous `/mnt/us/kfxdedrm-scriptlet/` layout.
+>
+> **Current limitation:** the bundled Satsuoni executables still use their built-in scan location (`/mnt/us/documents`) and generated KUAL menu path (`/mnt/us/extensions/kfxdedrm/menu.json`). The Settings page can save alternate/custom scan folders, but the current executables cannot yet receive that selected scan folder at runtime. Therefore, **changing the scan folder in Settings does not currently change where the native executable scans**.
+>
+> **What we are waiting on:** runtime arguments in the Kindle executables for (1) the scan directory and (2) the generated `menu.json` output path, while retaining the existing paths as defaults for KUAL backward compatibility. Once available, the same executables can support both KUAL and this Scriptlet, and the Settings scan-folder selection can be passed directly to the scanner.
+>
+> If your books are discoverable by the executable's existing `/mnt/us/documents` scan behavior, the current Scriptlet functionality can be tested and used. Users whose firmware/library layout requires a different scan root, such as `/mnt/us/documents/Downloads/Items01`, should treat v0.2.2 as **pre-release/testing only** until runtime scan-path support is available.
+
 The project keeps a single visible `KFX DeDRM` Scriptlet in the Kindle Library while preserving the four actions from the original KUAL menu:
 
 - DeDRM all KFX
