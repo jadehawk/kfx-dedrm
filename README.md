@@ -4,8 +4,6 @@ KUAL-free Kindle Scriptlet wrapper for Satsuoni's KFX DeDRM utility.
 
 Project repository: https://github.com/jadehawk/kfx-dedrm
 
-## v0.2.2 — CURRENT RELEASE
-
 The Scriptlet uses Satsuoni's updated executables, which accept runtime paths for scanning, generated `menu.json`, DeDRM output, and keyfile output. The Scriptlet passes its configured paths directly to the native executable and no longer needs the temporary KUAL `menu.json` compatibility bridge.
 
 **Scan folders are recursive.** If you select `/mnt/us/documents/Downloads`, the scanner also searches folders below it such as `/mnt/us/documents/Downloads/Items01`, `/Items02`, and book-specific subfolders. Selecting a narrower path such as `/mnt/us/documents/Downloads/Items01` limits the scan to that folder and its descendants.
