@@ -25,6 +25,14 @@ Options 3 and 4 preserve Satsuoni's original scan behavior, but the generated bo
 
 ![KFX DeDRM results in kterm](assets/DeDRM-Results.png)
 
+### Scan documents folder
+
+![KFX DeDRM option 3 scan results](assets/Option%203.png)
+
+### Scan documents folder with truncated names
+
+![KFX DeDRM option 4 scan results](assets/Option%204.png)
+
 ## Repository layout
 
 ```text
@@ -57,13 +65,14 @@ build.bat
 
 ## Build
 
-Run `build.bat` from Windows. The script reads the release version from `VERSION` and creates:
+Run `build.bat` from Windows. The script reads the release version from `VERSION` and creates both kterm variants:
 
 ```text
-Builds\kfx-dedrm-v<version>.zip
+Builds\kfx-dedrm-v<version>-armhf.zip
+Builds\kfx-dedrm-v<version>-legacy.zip
 ```
 
-The release ZIP is a complete distribution package. Its layout is:
+Both release ZIPs contain the same KFX DeDRM Scriptlet. The only payload difference is the bundled kterm 2.6 binary package. The release ZIP is a complete distribution package with this layout:
 
 ```text
 COPY TO KINDLE ROOT/
@@ -106,7 +115,7 @@ The important resulting Kindle paths are:
 
 **This package works only on a jailbroken Kindle with SH_Integration installed and working.** A stock/non-jailbroken Kindle cannot run this Scriptlet. SH_Integration is installed by the Universal Hotfix. The Universal Hotfix is installed automatically by WinterBreak, SpringBreak, and Sanctuary, so Kindles jailbroken with those methods should already have the required integration. If your Kindle was jailbroken using another method, install the Universal Hotfix separately before using KFX DeDRM; see the KindleModding.org [Setting Up A Hotfix](https://kindlemodding.org/jailbreaking/Legacy/post-jailbreak/setting-up-a-hotfix/) guide.
 
-This release bundles the kterm 2.6 ARM hard-float (`armhf`) Kindle build and therefore requires Kindle firmware newer than 5.16.3. Firmware 5.16.3 and earlier require the older non-`armhf` kterm build and are not supported by this release. kterm is installed automatically at `/mnt/us/extensions/kterm`; no separate installation is required. The Scriptlet launches an interactive terminal menu in kterm; choose actions with the on-screen keyboard (`1`-`4`) and use `Q` to exit back to the Kindle Library.
+Two kterm 2.6 variants are provided. Start with the **ARMHF** release on firmware newer than 5.16.3, as recommended by the upstream kterm project. Use the **Legacy** release when the ARMHF build does not launch on your device, or for older firmware that requires the non-`armhf` kterm build. Device compatibility can vary, so a working Legacy build is a valid choice even on newer firmware. kterm is installed automatically at `/mnt/us/extensions/kterm`; no separate installation is required. The Scriptlet launches an interactive terminal menu in kterm; choose actions with the on-screen keyboard (`1`-`4`) and use `Q` to exit back to the Kindle Library.
 
 ### Tested on
 

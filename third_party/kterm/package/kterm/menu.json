@@ -1,5 +1,0 @@
-{
-	"items": [
-		{"name": "kterm", "priority": 1, "action": "bin/kterm.sh"}
-	]
-}

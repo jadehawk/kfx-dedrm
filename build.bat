@@ -15,15 +15,17 @@ if "%VERSION%"=="" (
 )
 
 set "BUILD_DIR=%CD%\Builds"
-set "STAGE_DIR=%BUILD_DIR%\kfx-dedrm-v%VERSION%"
-set "KINDLE_DIR=%STAGE_DIR%\COPY TO KINDLE ROOT"
-set "OUTPUT=%BUILD_DIR%\kfx-dedrm-v%VERSION%.zip"
-set "KTERM_PACKAGE=%CD%\third_party\kterm\package\kterm"
+set "KTERM_ARMHF=%CD%\third_party\kterm\armhf\package\kterm"
+set "KTERM_LEGACY=%CD%\third_party\kterm\legacy\kterm"
 set "KTERM_LICENSE=%CD%\third_party\kterm\COPYING"
 set "KTERM_SOURCE=%CD%\third_party\kterm\kterm-v2.6-source.zip"
 
-if not exist "%KTERM_PACKAGE%\bin\kterm" (
-    echo [ERROR] Bundled kterm 2.6 package is missing.
+if not exist "%KTERM_ARMHF%\bin\kterm" (
+    echo [ERROR] Bundled kterm 2.6 ARMHF package is missing.
+    exit /b 1
+)
+if not exist "%KTERM_LEGACY%\bin\kterm" (
+    echo [ERROR] Bundled kterm 2.6 legacy package is missing.
     exit /b 1
 )
 if not exist "%KTERM_LICENSE%" (
@@ -36,8 +38,6 @@ if not exist "%KTERM_SOURCE%" (
 )
 
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
-if exist "%STAGE_DIR%" rmdir /s /q "%STAGE_DIR%"
-if exist "%OUTPUT%" del /q "%OUTPUT%"
 
 echo Checking shell script line endings...
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command ^
@@ -48,7 +48,29 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo Staging kfx-dedrm v%VERSION% distribution with kterm 2.6...
+call :build_variant armhf "%KTERM_ARMHF%"
+if errorlevel 1 exit /b 1
+
+call :build_variant legacy "%KTERM_LEGACY%"
+if errorlevel 1 exit /b 1
+
+echo.
+echo [OK] Releases created:
+echo %BUILD_DIR%\kfx-dedrm-v%VERSION%-armhf.zip
+echo %BUILD_DIR%\kfx-dedrm-v%VERSION%-legacy.zip
+exit /b 0
+
+:build_variant
+set "VARIANT=%~1"
+set "KTERM_PACKAGE=%~2"
+set "STAGE_DIR=%BUILD_DIR%\kfx-dedrm-v%VERSION%-%VARIANT%"
+set "KINDLE_DIR=%STAGE_DIR%\COPY TO KINDLE ROOT"
+set "OUTPUT=%BUILD_DIR%\kfx-dedrm-v%VERSION%-%VARIANT%.zip"
+
+if exist "%STAGE_DIR%" rmdir /s /q "%STAGE_DIR%"
+if exist "%OUTPUT%" del /q "%OUTPUT%"
+
+echo Staging kfx-dedrm v%VERSION% %VARIANT% distribution with kterm 2.6...
 mkdir "%STAGE_DIR%" >nul 2>&1
 mkdir "%KINDLE_DIR%" >nul 2>&1
 xcopy "%CD%\src\*" "%KINDLE_DIR%\" /E /I /Q /Y >nul
@@ -70,16 +92,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -Command ^
   "$ErrorActionPreference='Stop'; Compress-Archive -Path (Join-Path '%STAGE_DIR%' '*') -DestinationPath '%OUTPUT%' -CompressionLevel Optimal"
 
 if errorlevel 1 (
-    echo [ERROR] Build failed.
+    echo [ERROR] %VARIANT% build failed.
     exit /b 1
 )
 
 if not exist "%OUTPUT%" (
-    echo [ERROR] Build completed without producing the ZIP.
+    echo [ERROR] %VARIANT% build completed without producing the ZIP.
     exit /b 1
 )
 
-echo.
-echo [OK] Release created:
-echo %OUTPUT%
 exit /b 0
