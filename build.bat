@@ -79,7 +79,7 @@ echo Staging kfx-dedrm v%VERSION% %VARIANT% distribution...
 mkdir "%STAGE_DIR%" >nul 2>&1
 mkdir "%KINDLE_DIR%" >nul 2>&1
 xcopy "%CD%\src\*" "%KINDLE_DIR%\" /E /I /Q /Y >nul
-copy /Y "%CD%\VERSION" "%KINDLE_DIR%\kfxdedrm-scriptlet\VERSION" >nul
+copy /Y "%CD%\VERSION" "%KINDLE_DIR%\extensions\kfxdedrm-scriptlet\VERSION" >nul
 if /I "%INCLUDE_KTERM%"=="yes" (
     mkdir "%KINDLE_DIR%\extensions" >nul 2>&1
     xcopy "%KTERM_PACKAGE%\*" "%KINDLE_DIR%\extensions\kterm\" /E /I /Q /Y >nul

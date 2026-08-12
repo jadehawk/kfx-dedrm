@@ -47,17 +47,16 @@ assets/
 src/
 ├── documents/
 │   └── KFX DeDRM.sh
-├── extensions/
-│   └── kfxdedrm-scriptlet/
-│       └── menu.json
-└── kfxdedrm-scriptlet/
-    └── bin/
-        ├── menu.sh
-        ├── run_cmd.sh
-        ├── kfxdedrmhf_c11
-        ├── kfxdedrmhf_old
-        ├── kfxdedrm_c11
-        └── kfxdedrm_old
+└── extensions/
+    └── kfxdedrm-scriptlet/
+        ├── menu.json
+        └── bin/
+            ├── menu.sh
+            ├── run_cmd.sh
+            ├── kfxdedrmhf_c11
+            ├── kfxdedrmhf_old
+            ├── kfxdedrm_c11
+            └── kfxdedrm_old
 third_party/
 ├── kterm/
 └── satsuoni/
@@ -84,8 +83,8 @@ All three ZIPs contain the same KFX DeDRM Scriptlet. The first two bundle kterm 
 ```text
 COPY TO KINDLE ROOT/
 ├── documents/
-├── extensions/
-└── kfxdedrm-scriptlet/
+└── extensions/
+    └── kfxdedrm-scriptlet/
 LICENSE
 README.md
 THIRD_PARTY_NOTICES.md
@@ -110,21 +109,21 @@ The important resulting Kindle paths are:
 
 ```text
 /mnt/us/documents/KFX DeDRM.sh
-/mnt/us/kfxdedrm-scriptlet/bin/menu.sh
-/mnt/us/kfxdedrm-scriptlet/bin/run_cmd.sh
-/mnt/us/kfxdedrm-scriptlet/bin/kfxdedrmhf_c11
-/mnt/us/kfxdedrm-scriptlet/bin/kfxdedrmhf_old
-/mnt/us/kfxdedrm-scriptlet/bin/kfxdedrm_c11
-/mnt/us/kfxdedrm-scriptlet/bin/kfxdedrm_old
 /mnt/us/extensions/kfxdedrm-scriptlet/menu.json
+/mnt/us/extensions/kfxdedrm-scriptlet/bin/menu.sh
+/mnt/us/extensions/kfxdedrm-scriptlet/bin/run_cmd.sh
+/mnt/us/extensions/kfxdedrm-scriptlet/bin/kfxdedrmhf_c11
+/mnt/us/extensions/kfxdedrm-scriptlet/bin/kfxdedrmhf_old
+/mnt/us/extensions/kfxdedrm-scriptlet/bin/kfxdedrm_c11
+/mnt/us/extensions/kfxdedrm-scriptlet/bin/kfxdedrm_old
 /mnt/us/extensions/kterm/
 ```
 
 **This package works only on a jailbroken Kindle with SH_Integration installed and working.** A stock/non-jailbroken Kindle cannot run this Scriptlet. SH_Integration is installed by the Universal Hotfix. The Universal Hotfix is installed automatically by WinterBreak, SpringBreak, and Sanctuary, so Kindles jailbroken with those methods should already have the required integration. If your Kindle was jailbroken using another method, install the Universal Hotfix separately before using KFX DeDRM; see the KindleModding.org [Setting Up A Hotfix](https://kindlemodding.org/jailbreaking/Legacy/post-jailbreak/setting-up-a-hotfix/) guide.
 
-Three release packages are provided. Use **`kterm-armhf`** when the ARMHF kterm build works on your Kindle, **`kterm-legacy`** when the non-ARMHF/Legacy kterm build is required, or **`no-kterm`** when you already have a working kterm installation and do not want this package to replace it. The bundled variants install kterm at `/mnt/us/extensions/kterm`. The Scriptlet automatically detects a working kterm path and shows that detected path in Settings; no kterm configuration is normally required. If detection fails, the launcher creates `/mnt/us/kfxdedrm-scriptlet/config` and exits with instructions to set `KTERM_PATH` there manually. The Scriptlet launches an interactive terminal menu in kterm; choose actions with the on-screen keyboard and use `Q` to exit back to the Kindle Library.
+Three release packages are provided. Use **`kterm-armhf`** when the ARMHF kterm build works on your Kindle, **`kterm-legacy`** when the non-ARMHF/Legacy kterm build is required, or **`no-kterm`** when you already have a working kterm installation and do not want this package to replace it. The bundled variants install kterm at `/mnt/us/extensions/kterm`. The Scriptlet automatically detects a working kterm path and shows that detected path in Settings; no kterm configuration is normally required. If detection fails, the launcher creates `/mnt/us/extensions/kfxdedrm-scriptlet/config` and exits with instructions to set `KTERM_PATH` there manually. The Scriptlet launches an interactive terminal menu in kterm; choose actions with the on-screen keyboard and use `Q` to exit back to the Kindle Library.
 
-On first launch, Settings starts with **no scan folder selected**. Choose one of the listed locations or enter a custom path under `/mnt/us`, then save it. A valid saved scan folder is remembered on later launches and Settings can be opened and exited without choosing or saving it again. When upgrading from an older release, the renamed `KFX DeDRM.sh` launcher automatically removes the obsolete `/mnt/us/documents/DeDRM KFX.sh` file after it starts so only one Scriptlet remains in the Kindle Library.
+On first launch, Settings starts with **no scan folder selected**. The choices cover `/mnt/us/documents`, `Items01`, `Items02`, the newer `/mnt/us/documents/Downloads` layouts, and a custom path under `/mnt/us`. A valid saved scan folder is remembered on later launches and Settings can be opened and exited without choosing or saving it again. The current upstream v10.0.28 executables do not yet expose a command-line scan-folder argument, so the saved scan-folder setting is configuration/UI groundwork until that native argument is available. When upgrading from an older release, the launcher automatically removes the obsolete `/mnt/us/documents/DeDRM KFX.sh` filename, migrates a readable config from the old `/mnt/us/kfxdedrm-scriptlet` layout into `/mnt/us/extensions/kfxdedrm-scriptlet`, and removes the old root-level Scriptlet folder only after the new installation and migrated config are confirmed usable.
 
 ### Tested on
 
