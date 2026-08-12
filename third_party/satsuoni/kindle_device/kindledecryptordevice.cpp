@@ -2387,10 +2387,22 @@ void updatemenufile(const std::vector<fs::path>&books,bool truncate)
     for(const auto& pth:books)
     {
       std::string bname=pth.stem();
-      if (truncate&&bname.length()>40)
+      std::vector<size_t> utf8_starts;
+      for (size_t i=0; i<bname.size(); )
       {
-        std::string front=bname.substr(0,16);
-        std::string back=bname.substr(bname.length()-17);
+        utf8_starts.push_back(i);
+        unsigned char c=static_cast<unsigned char>(bname[i]);
+        size_t width=1;
+        if ((c&0xE0)==0xC0) width=2;
+        else if ((c&0xF0)==0xE0) width=3;
+        else if ((c&0xF8)==0xF0) width=4;
+        if (i+width>bname.size()) width=1;
+        i+=width;
+      }
+      if (truncate&&utf8_starts.size()>40)
+      {
+        std::string front=bname.substr(0,utf8_starts[16]);
+        std::string back=bname.substr(utf8_starts[utf8_starts.size()-17]);
         bname=front+"..."+back;
         std::replace(bname.begin(), bname.end(), ' ', '_');
       }
@@ -3391,8 +3403,16 @@ int main(int argc, char *argv[])
   {
     std::string cmd=argv[1];
     if(cmd=="test") mode="test";
-    if(cmd=="scan") mode="scan";
-    if(cmd=="scantruncate") {mode="scan";truncate=true;}
+    if(cmd=="scan" || cmd=="scantruncate")
+    {
+      mode="scan";
+      if(cmd=="scantruncate") truncate=true;
+      if(argc>2)
+      {
+        infolders.clear();
+        infolders.push_back(fs::path(std::string(argv[2])));
+      }
+    }
     if(cmd=="keyfile") mode="keyfile";
     if(cmd=="dedrm") 
     {

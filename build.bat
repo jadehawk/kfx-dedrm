@@ -48,21 +48,26 @@ if errorlevel 1 (
     exit /b 1
 )
 
-call :build_variant armhf "%KTERM_ARMHF%"
+call :build_variant kterm-armhf "%KTERM_ARMHF%" yes
 if errorlevel 1 exit /b 1
 
-call :build_variant legacy "%KTERM_LEGACY%"
+call :build_variant kterm-legacy "%KTERM_LEGACY%" yes
+if errorlevel 1 exit /b 1
+
+call :build_variant no-kterm "" no
 if errorlevel 1 exit /b 1
 
 echo.
 echo [OK] Releases created:
-echo %BUILD_DIR%\kfx-dedrm-v%VERSION%-armhf.zip
-echo %BUILD_DIR%\kfx-dedrm-v%VERSION%-legacy.zip
+echo %BUILD_DIR%\kfx-dedrm-v%VERSION%-kterm-armhf.zip
+echo %BUILD_DIR%\kfx-dedrm-v%VERSION%-kterm-legacy.zip
+echo %BUILD_DIR%\kfx-dedrm-v%VERSION%-no-kterm.zip
 exit /b 0
 
 :build_variant
 set "VARIANT=%~1"
 set "KTERM_PACKAGE=%~2"
+set "INCLUDE_KTERM=%~3"
 set "STAGE_DIR=%BUILD_DIR%\kfx-dedrm-v%VERSION%-%VARIANT%"
 set "KINDLE_DIR=%STAGE_DIR%\COPY TO KINDLE ROOT"
 set "OUTPUT=%BUILD_DIR%\kfx-dedrm-v%VERSION%-%VARIANT%.zip"
@@ -70,21 +75,26 @@ set "OUTPUT=%BUILD_DIR%\kfx-dedrm-v%VERSION%-%VARIANT%.zip"
 if exist "%STAGE_DIR%" rmdir /s /q "%STAGE_DIR%"
 if exist "%OUTPUT%" del /q "%OUTPUT%"
 
-echo Staging kfx-dedrm v%VERSION% %VARIANT% distribution with kterm 2.6...
+echo Staging kfx-dedrm v%VERSION% %VARIANT% distribution...
 mkdir "%STAGE_DIR%" >nul 2>&1
 mkdir "%KINDLE_DIR%" >nul 2>&1
 xcopy "%CD%\src\*" "%KINDLE_DIR%\" /E /I /Q /Y >nul
-mkdir "%KINDLE_DIR%\extensions" >nul 2>&1
-xcopy "%KTERM_PACKAGE%\*" "%KINDLE_DIR%\extensions\kterm\" /E /I /Q /Y >nul
+copy /Y "%CD%\VERSION" "%KINDLE_DIR%\kfxdedrm-scriptlet\VERSION" >nul
+if /I "%INCLUDE_KTERM%"=="yes" (
+    mkdir "%KINDLE_DIR%\extensions" >nul 2>&1
+    xcopy "%KTERM_PACKAGE%\*" "%KINDLE_DIR%\extensions\kterm\" /E /I /Q /Y >nul
+)
 
 copy /Y "%CD%\README.md" "%STAGE_DIR%\README.md" >nul
 copy /Y "%CD%\LICENSE" "%STAGE_DIR%\LICENSE" >nul
 copy /Y "%CD%\THIRD_PARTY_NOTICES.md" "%STAGE_DIR%\THIRD_PARTY_NOTICES.md" >nul
 copy /Y "%CD%\VERSION" "%STAGE_DIR%\VERSION" >nul
-mkdir "%STAGE_DIR%\licenses\kterm-2.6" >nul 2>&1
-copy /Y "%KTERM_LICENSE%" "%STAGE_DIR%\licenses\kterm-2.6\COPYING" >nul
-mkdir "%STAGE_DIR%\source\kterm-2.6" >nul 2>&1
-copy /Y "%KTERM_SOURCE%" "%STAGE_DIR%\source\kterm-2.6\kterm-v2.6-source.zip" >nul
+if /I "%INCLUDE_KTERM%"=="yes" (
+    mkdir "%STAGE_DIR%\licenses\kterm-2.6" >nul 2>&1
+    copy /Y "%KTERM_LICENSE%" "%STAGE_DIR%\licenses\kterm-2.6\COPYING" >nul
+    mkdir "%STAGE_DIR%\source\kterm-2.6" >nul 2>&1
+    copy /Y "%KTERM_SOURCE%" "%STAGE_DIR%\source\kterm-2.6\kterm-v2.6-source.zip" >nul
+)
 mkdir "%STAGE_DIR%\source\satsuoni-kfx-dedrm-10.0.28-scriptlet\kindle_device" >nul 2>&1
 xcopy "%CD%\third_party\satsuoni\kindle_device\*" "%STAGE_DIR%\source\satsuoni-kfx-dedrm-10.0.28-scriptlet\kindle_device\" /E /I /Q /Y >nul
 

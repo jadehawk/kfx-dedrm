@@ -40,7 +40,7 @@ assets/
 └── icon-source.png
 src/
 ├── documents/
-│   └── DeDRM KFX.sh
+│   └── KFX DeDRM.sh
 ├── extensions/
 │   └── kfxdedrm-scriptlet/
 │       └── menu.json
@@ -65,14 +65,15 @@ build.bat
 
 ## Build
 
-Run `build.bat` from Windows. The script reads the release version from `VERSION` and creates both kterm variants:
+Run `build.bat` from Windows. The script reads the release version from `VERSION` and creates three release packages:
 
 ```text
-Builds\kfx-dedrm-v<version>-armhf.zip
-Builds\kfx-dedrm-v<version>-legacy.zip
+Builds\kfx-dedrm-v<version>-kterm-armhf.zip
+Builds\kfx-dedrm-v<version>-kterm-legacy.zip
+Builds\kfx-dedrm-v<version>-no-kterm.zip
 ```
 
-Both release ZIPs contain the same KFX DeDRM Scriptlet. The only payload difference is the bundled kterm 2.6 binary package. The release ZIP is a complete distribution package with this layout:
+All three ZIPs contain the same KFX DeDRM Scriptlet. The first two bundle kterm 2.6 using the ARMHF or Legacy binary respectively. The `no-kterm` package omits kterm entirely for users who already have a working kterm installation. The release ZIP is a complete distribution package with this layout:
 
 ```text
 COPY TO KINDLE ROOT/
@@ -102,7 +103,7 @@ Open the release ZIP, open **`COPY TO KINDLE ROOT`**, and copy everything inside
 The important resulting Kindle paths are:
 
 ```text
-/mnt/us/documents/DeDRM KFX.sh
+/mnt/us/documents/KFX DeDRM.sh
 /mnt/us/kfxdedrm-scriptlet/bin/menu.sh
 /mnt/us/kfxdedrm-scriptlet/bin/run_cmd.sh
 /mnt/us/kfxdedrm-scriptlet/bin/kfxdedrmhf_c11
@@ -115,7 +116,9 @@ The important resulting Kindle paths are:
 
 **This package works only on a jailbroken Kindle with SH_Integration installed and working.** A stock/non-jailbroken Kindle cannot run this Scriptlet. SH_Integration is installed by the Universal Hotfix. The Universal Hotfix is installed automatically by WinterBreak, SpringBreak, and Sanctuary, so Kindles jailbroken with those methods should already have the required integration. If your Kindle was jailbroken using another method, install the Universal Hotfix separately before using KFX DeDRM; see the KindleModding.org [Setting Up A Hotfix](https://kindlemodding.org/jailbreaking/Legacy/post-jailbreak/setting-up-a-hotfix/) guide.
 
-Two kterm 2.6 variants are provided. Start with the **ARMHF** release on firmware newer than 5.16.3, as recommended by the upstream kterm project. Use the **Legacy** release when the ARMHF build does not launch on your device, or for older firmware that requires the non-`armhf` kterm build. Device compatibility can vary, so a working Legacy build is a valid choice even on newer firmware. kterm is installed automatically at `/mnt/us/extensions/kterm`; no separate installation is required. The Scriptlet launches an interactive terminal menu in kterm; choose actions with the on-screen keyboard (`1`-`4`) and use `Q` to exit back to the Kindle Library.
+Three release packages are provided. Use **`kterm-armhf`** when the ARMHF kterm build works on your Kindle, **`kterm-legacy`** when the non-ARMHF/Legacy kterm build is required, or **`no-kterm`** when you already have a working kterm installation and do not want this package to replace it. The bundled variants install kterm at `/mnt/us/extensions/kterm`. The Scriptlet automatically detects a working kterm path and shows that detected path in Settings; no kterm configuration is normally required. If detection fails, the launcher creates `/mnt/us/kfxdedrm-scriptlet/config` and exits with instructions to set `KTERM_PATH` there manually. The Scriptlet launches an interactive terminal menu in kterm; choose actions with the on-screen keyboard and use `Q` to exit back to the Kindle Library.
+
+On first launch, Settings starts with **no scan folder selected**. Choose one of the listed locations or enter a custom path under `/mnt/us`, then save it. A valid saved scan folder is remembered on later launches and Settings can be opened and exited without choosing or saving it again. When upgrading from an older release, the renamed `KFX DeDRM.sh` launcher automatically removes the obsolete `/mnt/us/documents/DeDRM KFX.sh` file after it starts so only one Scriptlet remains in the Kindle Library.
 
 ### Tested on
 
@@ -123,14 +126,14 @@ Two kterm 2.6 variants are provided. Start with the **ARMHF** release on firmwar
 
 ## Scriptlet icon notes
 
-The Kindle Library icon is embedded directly in `DeDRM KFX.sh` as a Base64 PNG using SH_Integration's `# Icon: data:image/png;base64,...` metadata format. The repository keeps the original high-resolution custom artwork at `assets/icon-source.png`; do not overwrite or delete that source image when regenerating the embedded icon. The `assets/` folder is repository-only and is not included in the distribution ZIP.
+The Kindle Library icon is embedded directly in `KFX DeDRM.sh` as a Base64 PNG using SH_Integration's `# Icon: data:image/png;base64,...` metadata format. The repository keeps the original high-resolution custom artwork at `assets/icon-source.png`; do not overwrite or delete that source image when regenerating the embedded icon. The `assets/` folder is repository-only and is not included in the distribution ZIP.
 
 The currently tested and working icon-generation recipe is:
 
 - Start from `assets/icon-source.png`.
 - Resize the artwork to exactly **250 x 391 pixels**.
 - Save the resized image as an **8-bit, 24-bit RGB PNG without alpha** (PNG color type 2).
-- Base64-encode that resized PNG and place the result after `# Icon: data:image/png;base64,` in `src/documents/DeDRM KFX.sh`.
+- Base64-encode that resized PNG and place the result after `# Icon: data:image/png;base64,` in `src/documents/KFX DeDRM.sh`.
 - Keep the Base64 data on the metadata line and preserve LF line endings in the shell script.
 
 The current working resized PNG is approximately 48 KB before Base64 encoding and about 65,000 Base64 characters. Earlier icon attempts using different image properties failed to display even though the Base64 syntax itself was valid, so the known-working dimensions and RGB PNG format should be preserved unless a new combination is verified on-device.

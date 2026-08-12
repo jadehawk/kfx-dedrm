@@ -90,6 +90,7 @@ echo "$executable"
 # compatibility target, capture its generated book list, then restore/remove it.
 run_scan() {
     scan_command=$1
+    scan_path=$2
     legacy_dir_created=0
     legacy_menu_existed=0
     backup="/tmp/kfxdedrm-menu.$$.bak"
@@ -129,7 +130,11 @@ run_scan() {
         return 1
     }
 
-    "$executable" "$scan_command"
+    if [ -n "$scan_path" ]; then
+        "$executable" "$scan_command" "$scan_path"
+    else
+        "$executable" "$scan_command"
+    fi
     status=$?
 
     # An unpatched v10.0.28 binary updates LEGACY_MENU. A rebuilt Scriptlet
