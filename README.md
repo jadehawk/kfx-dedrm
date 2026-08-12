@@ -33,6 +33,10 @@ Options 3 and 4 preserve Satsuoni's original scan behavior, but the generated bo
 
 ![KFX DeDRM option 4 scan results](assets/Option%204.png)
 
+### Settings
+
+![KFX DeDRM settings menu](assets/Settings.png)
+
 ## Repository layout
 
 ```text
