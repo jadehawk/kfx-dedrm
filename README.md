@@ -21,7 +21,7 @@ Options 3 and 4 preserve Satsuoni's original scan behavior, but the generated bo
 
 ### KFX DeDRM menu
 
-![KFX DeDRM interactive kterm menu](assets/Menu-View.png)
+![KFX DeDRM interactive kterm menu](assets/Menu_View.png)
 
 ### DeDRM results
 
