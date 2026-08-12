@@ -27,11 +27,11 @@ Options 3 and 4 preserve Satsuoni's original scan behavior, but the generated bo
 
 ### Scan documents folder
 
-![KFX DeDRM option 3 scan results](assets/Option%203.png)
+![KFX DeDRM option 3 scan results](assets/Option-3.png)
 
 ### Scan documents folder with truncated names
 
-![KFX DeDRM option 4 scan results](assets/Option%204.png)
+![KFX DeDRM option 4 scan results](assets/Option-4.png)
 
 ### Settings
 
