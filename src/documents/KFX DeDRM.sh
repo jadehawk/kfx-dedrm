@@ -54,9 +54,16 @@ fi
 ensure_config_file() {
     if [ ! -e "$CONFIG_FILE" ]; then
         {
-            printf 'SCAN_PATH=\n'
+            printf 'SCAN_PATH=/mnt/us/documents\n'
+            printf 'DEDRM_OUTPUT=/mnt/us/dedrm\n'
+            printf 'KEYFILE_OUTPUT=/mnt/us/dedrm/keyfile.txt\n'
             printf 'KTERM_PATH=\n'
         } > "$CONFIG_FILE" 2>/dev/null || return 1
+    else
+        grep -q '^SCAN_PATH=' "$CONFIG_FILE" 2>/dev/null || printf 'SCAN_PATH=/mnt/us/documents\n' >> "$CONFIG_FILE"
+        grep -q '^DEDRM_OUTPUT=' "$CONFIG_FILE" 2>/dev/null || printf 'DEDRM_OUTPUT=/mnt/us/dedrm\n' >> "$CONFIG_FILE"
+        grep -q '^KEYFILE_OUTPUT=' "$CONFIG_FILE" 2>/dev/null || printf 'KEYFILE_OUTPUT=/mnt/us/dedrm/keyfile.txt\n' >> "$CONFIG_FILE"
+        grep -q '^KTERM_PATH=' "$CONFIG_FILE" 2>/dev/null || printf 'KTERM_PATH=\n' >> "$CONFIG_FILE"
     fi
     chmod 666 "$CONFIG_FILE" 2>/dev/null || true
 }
@@ -68,6 +75,23 @@ config_value() {
     [ -r "$CONFIG_FILE" ] || return 1
     sed -n "s/^${key}=//p" "$CONFIG_FILE" | sed -n '1p'
 }
+
+ensure_output_paths() {
+    configured_dedrm=$(config_value DEDRM_OUTPUT)
+    configured_keyfile=$(config_value KEYFILE_OUTPUT)
+
+    case "$configured_dedrm" in
+        /mnt/us|/mnt/us/*) mkdir -p "$configured_dedrm" 2>/dev/null || true ;;
+    esac
+    case "$configured_keyfile" in
+        /mnt/us/*)
+            configured_key_parent=${configured_keyfile%/*}
+            mkdir -p "$configured_key_parent" 2>/dev/null || true
+            ;;
+    esac
+}
+
+ensure_output_paths
 
 find_kterm() {
     configured=${KTERM_PATH:-$(config_value KTERM_PATH)}
@@ -100,7 +124,7 @@ show_message() {
 
 if [ ! -x "$MENU" ]; then
     show_message "KFX DeDRM menu missing" "$MENU"
-    sleep 12
+    sleep 5
     exit 1
 fi
 
@@ -108,18 +132,76 @@ if [ -z "$KTERM" ] || [ ! -x "$KTERM" ]; then
     {
         printf '%s\n' 'KFX DeDRM could not find a working kterm installation.'
         printf '\n%s\n' 'Install one of the kterm builds included with KFX DeDRM, or use the no-kterm release only when kterm is already installed.'
-        printf '\n%s\n' 'Advanced users can set KTERM_PATH in:'
+        printf '\n%s\n' 'Advanced users can set KTERM_PATH manually in:'
         printf '%s\n' "$CONFIG_FILE"
-        printf '\n%s\n' 'Example:'
+        printf '\n%s\n' 'IMPORTANT: kterm must remain under /mnt/us/extensions for interactive use.'
+        printf '%s\n' 'On-device testing confirmed that moving the ARMHF kterm build outside /mnt/us/extensions can make the on-screen keyboard disappear, even though kterm itself still launches.'
+        printf '%s\n' "The keyboard could not be restored with kterm's Toggle Keyboard option."
+        printf '\n%s\n' 'Recommended example:'
         printf '%s\n' 'KTERM_PATH=/mnt/us/extensions/kterm/bin/kterm'
     } > "$ERROR_FILE" 2>/dev/null || true
 
     show_message "KFX DeDRM: kterm not found" "Install kterm. Instructions saved to KFX DeDRM - ERROR.txt"
-    sleep 12
+    sleep 5
     exit 1
 fi
 
-# Remove a previous missing-kterm notice once startup can continue normally.
+validate_kterm() {
+    case "$KTERM" in
+        /mnt/us/extensions/*) ;;
+        *)
+            {
+                printf '%s\n' 'KFX DeDRM found kterm in an unsupported location.'
+                printf '\n%s\n' 'Detected:'
+                printf '%s\n' "$KTERM"
+                printf '\n%s\n' 'kterm may launch from outside /mnt/us/extensions, but on-device testing showed that its on-screen keyboard can be unavailable and cannot be restored from the kterm menu.'
+                printf '\n%s\n' 'Move/install kterm under:'
+                printf '%s\n' '/mnt/us/extensions/kterm'
+                printf '\n%s\n' 'Recommended executable:'
+                printf '%s\n' '/mnt/us/extensions/kterm/bin/kterm'
+            } > "$ERROR_FILE" 2>/dev/null || true
+            show_message "KFX DeDRM: unsupported kterm location" "Move kterm under /mnt/us/extensions. Details saved to KFX DeDRM - ERROR.txt"
+            return 1
+            ;;
+    esac
+
+    if LC_ALL=C grep -q '/lib/ld-linux-armhf.so.3' "$KTERM" 2>/dev/null; then
+        if [ ! -e /lib/ld-linux-armhf.so.3 ]; then
+            {
+                printf '%s\n' 'KFX DeDRM detected the ARMHF kterm build, but this Kindle does not provide the ARMHF dynamic loader it requires.'
+                printf '\n%s\n' 'Detected kterm:'
+                printf '%s\n' "$KTERM"
+                printf '\n%s\n' 'Required loader:'
+                printf '%s\n' '/lib/ld-linux-armhf.so.3'
+                printf '\n%s\n' 'Install the Legacy/non-HF kterm release instead.'
+            } > "$ERROR_FILE" 2>/dev/null || true
+            show_message "KFX DeDRM: incompatible ARMHF kterm" "Install the Legacy/non-HF kterm release. Details saved to KFX DeDRM - ERROR.txt"
+            return 1
+        fi
+    elif LC_ALL=C grep -q '/lib/ld-linux.so.3' "$KTERM" 2>/dev/null; then
+        if [ ! -e /lib/ld-linux.so.3 ]; then
+            {
+                printf '%s\n' 'KFX DeDRM detected the Legacy/non-HF kterm build, but this Kindle does not provide the legacy dynamic loader it requires.'
+                printf '\n%s\n' 'Detected kterm:'
+                printf '%s\n' "$KTERM"
+                printf '\n%s\n' 'Required loader:'
+                printf '%s\n' '/lib/ld-linux.so.3'
+                printf '\n%s\n' 'Install the ARMHF kterm release instead.'
+            } > "$ERROR_FILE" 2>/dev/null || true
+            show_message "KFX DeDRM: incompatible Legacy kterm" "Install the ARMHF kterm release. Details saved to KFX DeDRM - ERROR.txt"
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
+if ! validate_kterm; then
+    sleep 5
+    exit 1
+fi
+
+# Remove a previous kterm notice once startup can continue normally.
 rm -f "$ERROR_FILE" 2>/dev/null || true
 
 # Force UTF-8 so multibyte CJK titles are interpreted as characters rather than
@@ -131,15 +213,33 @@ KTERM_FONT_ARGS=""
 save_requested_config() {
     [ -r "$CONFIG_REQUEST" ] || return 1
     requested_scan=$(sed -n 's/^SCAN_PATH=//p' "$CONFIG_REQUEST" | sed -n '1p')
+    requested_dedrm=$(sed -n 's/^DEDRM_OUTPUT=//p' "$CONFIG_REQUEST" | sed -n '1p')
+    requested_keyfile=$(sed -n 's/^KEYFILE_OUTPUT=//p' "$CONFIG_REQUEST" | sed -n '1p')
+
     case "$requested_scan" in
         /mnt/us|/mnt/us/*) ;;
         *) rm -f "$CONFIG_REQUEST"; return 1 ;;
     esac
     [ -d "$requested_scan" ] || { rm -f "$CONFIG_REQUEST"; return 1; }
 
+    case "$requested_dedrm" in
+        /mnt/us|/mnt/us/*) ;;
+        *) rm -f "$CONFIG_REQUEST"; return 1 ;;
+    esac
+    case "$requested_keyfile" in
+        /mnt/us/*) ;;
+        *) rm -f "$CONFIG_REQUEST"; return 1 ;;
+    esac
+
+    mkdir -p "$requested_dedrm" 2>/dev/null || { rm -f "$CONFIG_REQUEST"; return 1; }
+    key_parent=${requested_keyfile%/*}
+    mkdir -p "$key_parent" 2>/dev/null || { rm -f "$CONFIG_REQUEST"; return 1; }
+
     saved_kterm=$(config_value KTERM_PATH)
     {
         printf 'SCAN_PATH=%s\n' "$requested_scan"
+        printf 'DEDRM_OUTPUT=%s\n' "$requested_dedrm"
+        printf 'KEYFILE_OUTPUT=%s\n' "$requested_keyfile"
         printf 'KTERM_PATH=%s\n' "$saved_kterm"
     } > "$CONFIG_FILE" 2>/dev/null || return 1
     chmod 666 "$CONFIG_FILE" 2>/dev/null || true
@@ -161,7 +261,7 @@ while :; do
         fi
         show_message "Unable to save KFX DeDRM settings" "$CONFIG_FILE"
         rm -f "$CONFIG_REQUEST"
-        sleep 12
+        sleep 5
     fi
     exit "$status"
 done

@@ -10,8 +10,10 @@ CONFIG_REQUEST="${KFXDEDRM_CONFIG_REQUEST:-/tmp/kfxdedrm-config-request}"
 MENU_JSON="${KFXDEDRM_MENU_JSON:-/mnt/us/extensions/kfxdedrm-scriptlet/menu.json}"
 BOOKS_FILE="/tmp/kfxdedrm-books.$$"
 BOOKS_PER_PAGE=8
-SCAN_PATH=""
-FIRST_RUN=1
+SCAN_PATH="/mnt/us/documents"
+DEDRM_OUTPUT="/mnt/us/dedrm"
+KEYFILE_OUTPUT="/mnt/us/dedrm/keyfile.txt"
+SETTINGS_REQUIRED=0
 
 if [ -r "$VERSION_FILE" ]; then
     SCRIPTLET_VERSION=$(sed -n '1p' "$VERSION_FILE")
@@ -41,18 +43,31 @@ config_value() {
 }
 
 load_config() {
-    [ -r "$CONFIG_FILE" ] || return 1
+    [ -r "$CONFIG_FILE" ] || {
+        [ -d "$SCAN_PATH" ] || SETTINGS_REQUIRED=1
+        return 1
+    }
+
     value=$(config_value SCAN_PATH)
-    [ -n "$value" ] || return 1
-    [ -d "$value" ] || return 1
-    SCAN_PATH=$value
-    FIRST_RUN=0
+    [ -n "$value" ] && SCAN_PATH=$value
+    value=$(config_value DEDRM_OUTPUT)
+    [ -n "$value" ] && DEDRM_OUTPUT=$value
+    value=$(config_value KEYFILE_OUTPUT)
+    [ -n "$value" ] && KEYFILE_OUTPUT=$value
+
+    [ -d "$SCAN_PATH" ] || SETTINGS_REQUIRED=1
     return 0
 }
 
 save_config() {
     [ -n "$SCAN_PATH" ] || return 1
-    printf 'SCAN_PATH=%s\n' "$SCAN_PATH" > "$CONFIG_REQUEST"
+    [ -n "$DEDRM_OUTPUT" ] || return 1
+    [ -n "$KEYFILE_OUTPUT" ] || return 1
+    {
+        printf 'SCAN_PATH=%s\n' "$SCAN_PATH"
+        printf 'DEDRM_OUTPUT=%s\n' "$DEDRM_OUTPUT"
+        printf 'KEYFILE_OUTPUT=%s\n' "$KEYFILE_OUTPUT"
+    } > "$CONFIG_REQUEST"
 }
 
 load_config || true
@@ -112,87 +127,173 @@ choose_custom_scan_path() {
     return 1
 }
 
+choose_custom_dedrm_output() {
+    printf '\nEnter full DeDRMed books output folder:\n> '
+    IFS= read custom
+    case "$custom" in
+        /mnt/us/*|/mnt/us)
+            DEDRM_OUTPUT=$custom
+            return 0
+            ;;
+        *)
+            printf '\nPath must be under /mnt/us.\n'
+            wait_for_enter
+            ;;
+    esac
+    return 1
+}
+
+choose_custom_keyfile_output() {
+    printf '\nEnter full keyfile output path, including filename:\n> '
+    IFS= read custom
+    case "$custom" in
+        /mnt/us/*)
+            case "$custom" in
+                */) printf '\nEnter a filename, not only a folder.\n'; wait_for_enter ;;
+                *) KEYFILE_OUTPUT=$custom; return 0 ;;
+            esac
+            ;;
+        *)
+            printf '\nPath must be under /mnt/us.\n'
+            wait_for_enter
+            ;;
+    esac
+    return 1
+}
+
+scan_folder_menu() {
+    while :; do
+        clear_screen
+        printf '%s\n' '============================================'
+        printf '%s\n' '              Scan Folder'
+        printf '%s\n' '============================================'
+        printf '\nCurrent:\n  %s\n\n' "$SCAN_PATH"
+        printf '%s\n' 'Scan roots are recursive.'
+        printf '\n'
+        printf '%s\n' '1. /mnt/us/documents'
+        printf '%s\n' '2. /mnt/us/documents/Items01'
+        printf '%s\n' '3. /mnt/us/documents/Items02'
+        printf '%s\n' '4. /mnt/us/documents/Downloads'
+        printf '%s\n' '5. /mnt/us/documents/Downloads/Items01'
+        printf '%s\n' '6. /mnt/us/documents/Downloads/Items02'
+        printf '%s\n' '7. Enter custom scan folder'
+        printf '%s\n' 'B. Back'
+        printf '\nSelect an option: '
+        IFS= read choice
+        case "$choice" in
+            1) candidate="/mnt/us/documents" ;;
+            2) candidate="/mnt/us/documents/Items01" ;;
+            3) candidate="/mnt/us/documents/Items02" ;;
+            4) candidate="/mnt/us/documents/Downloads" ;;
+            5) candidate="/mnt/us/documents/Downloads/Items01" ;;
+            6) candidate="/mnt/us/documents/Downloads/Items02" ;;
+            7) choose_custom_scan_path || true; continue ;;
+            b|B) return ;;
+            *) continue ;;
+        esac
+        if [ -d "$candidate" ]; then
+            SCAN_PATH=$candidate
+        else
+            printf '\nFolder does not exist:\n%s\n' "$candidate"
+            wait_for_enter
+        fi
+    done
+}
+
+dedrm_output_menu() {
+    while :; do
+        clear_screen
+        printf '%s\n' '============================================'
+        printf '%s\n' '          DeDRMed Books Output'
+        printf '%s\n' '============================================'
+        printf '\nCurrent:\n  %s\n\n' "$DEDRM_OUTPUT"
+        printf '%s\n' '1. Use default /mnt/us/dedrm'
+        printf '%s\n' '2. Enter custom output folder'
+        printf '%s\n' 'B. Back'
+        printf '\nSelect an option: '
+        IFS= read choice
+        case "$choice" in
+            1) DEDRM_OUTPUT="/mnt/us/dedrm" ;;
+            2) choose_custom_dedrm_output || true ;;
+            b|B) return ;;
+            *) ;;
+        esac
+    done
+}
+
+keyfile_output_menu() {
+    while :; do
+        clear_screen
+        printf '%s\n' '============================================'
+        printf '%s\n' '             Keyfile Output'
+        printf '%s\n' '============================================'
+        printf '\nCurrent:\n  %s\n\n' "$KEYFILE_OUTPUT"
+        printf '%s\n' '1. Use default /mnt/us/dedrm/keyfile.txt'
+        printf '%s\n' '2. Enter custom keyfile path'
+        printf '%s\n' 'B. Back'
+        printf '\nSelect an option: '
+        IFS= read choice
+        case "$choice" in
+            1) KEYFILE_OUTPUT="/mnt/us/dedrm/keyfile.txt" ;;
+            2) choose_custom_keyfile_output || true ;;
+            b|B) return ;;
+            *) ;;
+        esac
+    done
+}
+
+kterm_info_menu() {
+    clear_screen
+    printf '%s\n' '============================================'
+    printf '%s\n' '             kterm Information'
+    printf '%s\n' '============================================'
+    printf '\nAutomatically detected path:\n  %s\n' "${KTERM_PATH:-unknown}"
+    case "${KTERM_PATH:-}" in
+        /mnt/us/extensions/*)
+            printf '\nKeyboard-compatible location detected.\n'
+            ;;
+        *)
+            printf '\nWARNING: kterm was found outside /mnt/us/extensions.\n'
+            printf '%s\n' 'The terminal may open, but the on-screen keyboard may be unavailable.'
+            printf '%s\n' 'Recommended location: /mnt/us/extensions/kterm/bin/kterm'
+            ;;
+    esac
+    printf '\nKterm has a hidden touch menu.\n'
+    printf '%s\n' 'Use a two-finger (dual-touch) swipe to open it.'
+    printf '%s\n' 'From there you can increase/decrease font size,'
+    printf '%s\n' 'reverse colors, toggle the keyboard, reset the terminal, or quit.'
+    printf '%s\n' 'Use the kterm menu for font size; the launch font-size option is not reliable.'
+    wait_for_enter
+}
+
 settings_menu() {
     while :; do
         clear_screen
         printf '%s\n' '============================================'
         printf '%s\n' '                Settings'
         printf '%s\n' '============================================'
-        if [ -n "$SCAN_PATH" ]; then
-            printf '\nSelected scan folder:\n  %s\n' "$SCAN_PATH"
-        else
-            printf '\nSelected scan folder: not configured\n'
-            printf '%s\n' 'Choose a scan folder before saving.'
+        if [ "$SETTINGS_REQUIRED" -eq 1 ]; then
+            printf '\nNOTICE: The configured scan folder does not exist.\n'
+            printf '%s\n' 'Choose a valid scan folder and save settings.'
         fi
-        printf '\nkterm path (automatically detected):\n  %s\n' "${KTERM_PATH:-unknown}"
-        printf '%s\n' 'No kterm setting is required while this menu is working.'
-        printf '\n'
-        printf '%s\n' '1. Use /mnt/us/documents'
-        printf '%s\n' '2. Use /mnt/us/documents/Items01'
-        printf '%s\n' '3. Use /mnt/us/documents/Items02'
-        printf '%s\n' '4. Use /mnt/us/documents/Downloads'
-        printf '%s\n' '5. Use /mnt/us/documents/Downloads/Items01'
-        printf '%s\n' '6. Use /mnt/us/documents/Downloads/Items02'
-        printf '%s\n' '7. Enter custom scan folder'
-        printf '%s\n' 'S. Save settings'
+        printf '\n1. Scan Folder\n   %s\n' "$SCAN_PATH"
+        printf '\n2. DeDRMed Books Output\n   %s\n' "$DEDRM_OUTPUT"
+        printf '\n3. Keyfile Output\n   %s\n' "$KEYFILE_OUTPUT"
+        printf '\n4. kterm Information\n'
+        printf '\n%s\n' 'S. Save settings'
         printf '%s\n' 'B. Back'
         printf '%s\n' 'Q. Exit'
         printf '\nSelect an option: '
         IFS= read choice
 
         case "$choice" in
-            1)
-                if [ -d /mnt/us/documents ]; then
-                    SCAN_PATH="/mnt/us/documents"
-                else
-                    printf '\nFolder does not exist.\n'
-                    wait_for_enter
-                fi
-                ;;
-            2)
-                if [ -d /mnt/us/documents/Items01 ]; then
-                    SCAN_PATH="/mnt/us/documents/Items01"
-                else
-                    printf '\nFolder does not exist.\n'
-                    wait_for_enter
-                fi
-                ;;
-            3)
-                if [ -d /mnt/us/documents/Items02 ]; then
-                    SCAN_PATH="/mnt/us/documents/Items02"
-                else
-                    printf '\nFolder does not exist.\n'
-                    wait_for_enter
-                fi
-                ;;
-            4)
-                if [ -d /mnt/us/documents/Downloads ]; then
-                    SCAN_PATH="/mnt/us/documents/Downloads"
-                else
-                    printf '\nFolder does not exist.\n'
-                    wait_for_enter
-                fi
-                ;;
-            5)
-                if [ -d /mnt/us/documents/Downloads/Items01 ]; then
-                    SCAN_PATH="/mnt/us/documents/Downloads/Items01"
-                else
-                    printf '\nFolder does not exist.\n'
-                    wait_for_enter
-                fi
-                ;;
-            6)
-                if [ -d /mnt/us/documents/Downloads/Items02 ]; then
-                    SCAN_PATH="/mnt/us/documents/Downloads/Items02"
-                else
-                    printf '\nFolder does not exist.\n'
-                    wait_for_enter
-                fi
-                ;;
-            7) choose_custom_scan_path || true ;;
+            1) scan_folder_menu ;;
+            2) dedrm_output_menu ;;
+            3) keyfile_output_menu ;;
+            4) kterm_info_menu ;;
             s|S)
-                if [ -z "$SCAN_PATH" ]; then
-                    printf '\nChoose a scan folder before saving.\n'
+                if [ ! -d "$SCAN_PATH" ]; then
+                    printf '\nSelected scan folder does not exist:\n%s\n' "$SCAN_PATH"
                     wait_for_enter
                 elif save_config; then
                     printf '\nSaving settings and reopening KFX DeDRM...\n'
@@ -203,8 +304,8 @@ settings_menu() {
                 fi
                 ;;
             b|B)
-                if [ "$FIRST_RUN" -eq 1 ]; then
-                    printf '\nChoose and save a scan folder before leaving first-run setup.\n'
+                if [ "$SETTINGS_REQUIRED" -eq 1 ]; then
+                    printf '\nA valid scan folder must be saved before leaving Settings.\n'
                     wait_for_enter
                 else
                     return
@@ -349,7 +450,7 @@ show_books_menu() {
                     book_title=$(printf '%s\n' "$selected" | cut -f2)
                     clear_screen
                     printf 'DeDRM: %s\n\n' "$book_title"
-                    "$RUNNER" dedrm "$book_path"
+                    "$RUNNER" dedrm "$book_path" "$DEDRM_OUTPUT"
                     wait_for_enter
                 fi
                 ;;
@@ -393,7 +494,7 @@ credits_menu() {
     done
 }
 
-if [ "$FIRST_RUN" -eq 1 ]; then
+if [ "$SETTINGS_REQUIRED" -eq 1 ]; then
     settings_menu
 fi
 
@@ -419,12 +520,12 @@ while :; do
     case "$choice" in
         1)
             clear_screen
-            "$RUNNER"
+            "$RUNNER" dedrm_all "$SCAN_PATH" "$DEDRM_OUTPUT"
             wait_for_enter
             ;;
         2)
             clear_screen
-            "$RUNNER" keyfile
+            "$RUNNER" keyfile "$SCAN_PATH" "$KEYFILE_OUTPUT"
             wait_for_enter
             ;;
         3) scan_books scan ;;

@@ -7,8 +7,6 @@
 SCRIPT_DIR=$(cd "$(dirname "$0")" 2>/dev/null && pwd)
 [ -n "$SCRIPT_DIR" ] || SCRIPT_DIR="/mnt/us/extensions/kfxdedrm-scriptlet/bin"
 SCRIPTLET_MENU="/mnt/us/extensions/kfxdedrm-scriptlet/menu.json"
-LEGACY_DIR="/mnt/us/extensions/kfxdedrm"
-LEGACY_MENU="$LEGACY_DIR/menu.json"
 
 if [ -d /etc/upstart ]; then
     INIT_TYPE="upstart"
@@ -84,74 +82,16 @@ fi
 
 echo "$executable"
 
-# v10.0.28's released binaries still write scan results to the original KUAL
-# path. The forked source in this repository targets kfxdedrm-scriptlet instead.
-# Until rebuilt binaries are bundled, make the legacy menu path a temporary
-# compatibility target, capture its generated book list, then restore/remove it.
-run_scan() {
-    scan_command=$1
-    scan_path=$2
-    legacy_dir_created=0
-    legacy_menu_existed=0
-    backup="/tmp/kfxdedrm-menu.$$.bak"
-
-    if [ ! -f "$SCRIPTLET_MENU" ]; then
-        echo "Scriptlet menu template not found: $SCRIPTLET_MENU"
-        return 1
-    fi
-
-    if [ ! -d "$LEGACY_DIR" ]; then
-        mkdir "$LEGACY_DIR" || return 1
-        legacy_dir_created=1
-    fi
-
-    if [ -f "$LEGACY_MENU" ]; then
-        cp "$LEGACY_MENU" "$backup" || return 1
-        legacy_menu_existed=1
-    fi
-
-    restore_legacy_menu() {
-        if [ "$legacy_menu_existed" -eq 1 ] && [ -f "$backup" ]; then
-            cp "$backup" "$LEGACY_MENU"
-        else
-            rm -f "$LEGACY_MENU"
-        fi
-        rm -f "$backup"
-        if [ "$legacy_dir_created" -eq 1 ]; then
-            rmdir "$LEGACY_DIR" 2>/dev/null || true
-        fi
-    }
-
-    trap 'restore_legacy_menu; exit 130' HUP INT TERM
-
-    cp "$SCRIPTLET_MENU" "$LEGACY_MENU" || {
-        restore_legacy_menu
-        trap - HUP INT TERM
-        return 1
-    }
-
-    if [ -n "$scan_path" ]; then
-        "$executable" "$scan_command" "$scan_path"
-    else
-        "$executable" "$scan_command"
-    fi
-    status=$?
-
-    # An unpatched v10.0.28 binary updates LEGACY_MENU. A rebuilt Scriptlet
-    # binary updates SCRIPTLET_MENU directly. Only copy from the legacy path
-    # when it actually contains generated per-book DeDRM entries.
-    if grep -q '"params"[[:space:]]*:[[:space:]]*"dedrm ' "$LEGACY_MENU" 2>/dev/null; then
-        cp "$LEGACY_MENU" "$SCRIPTLET_MENU" || status=1
-    fi
-
-    restore_legacy_menu
-    trap - HUP INT TERM
-    return "$status"
-}
-
+# New Scriptlet-aware binaries accept both the recursive scan root and the
+# complete menu.json output path. Point scan results directly at our menu so
+# the original KUAL extension remains untouched.
 case "$1" in
     scan|scantruncate)
-        run_scan "$1" "$2"
+        if [ ! -f "$SCRIPTLET_MENU" ]; then
+            echo "Scriptlet menu template not found: $SCRIPTLET_MENU"
+            exit 1
+        fi
+        "$executable" "$1" "$2" "$SCRIPTLET_MENU"
         exit $?
         ;;
 esac
